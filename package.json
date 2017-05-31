@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "elasticsearch": "^13.0.1",
+    "influx": "^5.0.7",
     "js-yaml": "^3.8.4",
     "moment": "^2.18.1",
     "mongoose": "^4.10.0"
