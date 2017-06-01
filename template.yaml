@@ -1,4 +1,9 @@
 randomFields:
+  sla:
+    - sla_sample
+    - mock_sample
+    - sla_sample2
+    - mock_sample1
   tenant:
     - tenant1
     - tenant2
@@ -29,7 +34,7 @@ randomFields:
     - Date
 body: >
         {
-            "sla": "mock-sample",
+            "sla": "{{sla}}",
             "scope": {
                 "tenant": "{{tenant}}",
                 "account": "{{account}}"
