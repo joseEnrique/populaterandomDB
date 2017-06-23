@@ -1,13 +1,14 @@
-const Influx = require('influx');
-const moment = require('moment');
+var Influx = require('influx');
+var moment = require('moment');
 var generateObject = require("./generate").generate;
-const influx = new Influx.InfluxDB({
+var influx = new Influx.InfluxDB({
     host: 'localhost',
-    database: 'agreements',
+    database: 'agreements2',
     schema: [{
         measurement: 'access',
         fields: {
-            value: Influx.FieldType.INTEGER
+            value: Influx.FieldType.INTEGER,
+	    sla: Influx.FieldType.STRING
         },
 
         tags: [
@@ -37,8 +38,8 @@ function _populateInflux(url, opt, collection, urischema, duration, range, count
 
     influx.getDatabaseNames()
         .then(names => {
-            if (!names.includes('agreements')) {
-                return influx.createDatabase('agreements').then(function(succ) {
+            if (!names.includes('agreements2')) {
+                return influx.createDatabase('agreements2').then(function(succ) {
                     console.log(succ);
                 }, function(err) {
                     console.log(err);
@@ -52,20 +53,26 @@ function _populateInflux(url, opt, collection, urischema, duration, range, count
             var counter_timer = 0;
             var interval = setInterval(function() {
 
-                    if (counter_timer == 2) {
-                        clearInterval(interval);
-
-                    } else {
-                        counter_timer++;
-                    }
-                    for (var i = 0; i < 1000000; i++) {
+                    var arraypoints = [];
+                    for (var i = 0; i < 5000; i++) {
                         objectTRand = generateObject();
                         flattenObject = _flatten(objectTRand);
-                        _writePoints(flattenObject)
-
+                        var point = {
+                            measurement: 'access',
+                            tags: flattenObject,
+                            fields: {
+                                value: 1,
+				sla: flattenObject['sla']
+                            },
+                            timestamp: moment().unix()
+                        }
+                        arraypoints.push(point);
                     }
+                    //console.log(arraypoints);
+                    _writePoints(arraypoints);
+
                 },
-                range * 15000);
+                2 * 1000);
 
 
 
@@ -112,14 +119,7 @@ function _flatten(obj, opt_out, opt_paths) {
 }
 
 function _writePoints(fields) {
-    influx.writePoints([{
-        measurement: 'access',
-        tags: fields,
-        fields: {
-            value: 1
-        },
-        timestamp: moment(fields['measures_0_ts']).unix()
-    }]).catch(err => {
+    influx.writePoints(fields).catch(err => {
         console.error(`Error saving data to InfluxDB! ${err.stack}`)
     })
 }
